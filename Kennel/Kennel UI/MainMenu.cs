@@ -1,24 +1,24 @@
-﻿using System;
+﻿using Kennel.Services;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Kennel
 {
     public class MainMenu : IMainMenu
     {
-        ICustomerList CustomerList;
-        IAnimalList AnimalList;
-        IPerson Person;
-        IFactory Factory;
+        private readonly ICustomerService _customerService;
+        private readonly IAnimalService _animalService;
+        private readonly IKennelService _kennelService;
         public string menuOption { get; set; }
         public bool IsRunning { get; set; }
 
-        public MainMenu(IPerson person, ICustomerList customerList, IFactory factory, IAnimalList animalList)
+        public MainMenu(ICustomerService customerService, IAnimalService animalService, IKennelService kennelService)
         {
-            Person = person;
-            CustomerList = customerList;
-            AnimalList = animalList;
-            Factory = factory;
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            _animalService = animalService ?? throw new ArgumentNullException(nameof(animalService));
+            _kennelService = kennelService ?? throw new ArgumentNullException(nameof(kennelService));
         }
 
         public void Menu()
@@ -28,9 +28,9 @@ namespace Kennel
             {
                 ShowMenu();
             }
-            while (IsRunning == true);            
+            while (IsRunning == true);
         }
-        
+
 
         private void ShowMenu()
         {
@@ -50,44 +50,44 @@ namespace Kennel
             menuOption = Console.ReadLine();
             if (menuOption == "1")
             {
-                var person = Factory.CreatePerson();
                 Console.WriteLine("\nEnter your name: ");
-                person.Name = Console.ReadLine();
+                var name = Console.ReadLine();
                 Console.WriteLine("\nEnter your email: ");
-                person.Email = Console.ReadLine();
-                CustomerList.customers.Add(person);
-                Console.WriteLine($"\n{person.Name} saved. \n\nPress any button to continue...");
+                var email = Console.ReadLine();
+                var customer = _customerService.Create(348, name, email, new List<Models.Animal>());
+                Console.WriteLine($"\n{customer.Name} saved. \n\nPress any button to continue...");
                 Console.ReadLine();
             }
             if (menuOption == "2")
             {
-                var animal = Factory.CreateAnimal();
-                    Console.WriteLine("\nEnter animal name: ");
-                
-                animal.Name = Console.ReadLine();
-                if (string.IsNullOrEmpty(animal.Name))
+                Console.WriteLine("\nEnter animal name: ");
+
+                var name = Console.ReadLine();
+                if (string.IsNullOrEmpty(name))
                 {
                     Console.WriteLine("Invalid input");
                     Console.ReadLine();
                     return;
                 }
 
-                    Console.WriteLine($"\nSelect owner to {animal.Name}: ");
-                for (int i = 0; i < CustomerList.customers.Count; i++)
-                {
-                    Console.WriteLine($"{i} {CustomerList.customers[i].Name}");
-                }
-                    Console.WriteLine("Enter input below: \n");
-                int AnimalOwner = Convert.ToInt32(Console.ReadLine());
-                if ((CustomerList.customers.Count - 1) < AnimalOwner)
-                {
+                var animal = _animalService.Create(123, name, false, new Models.Customer(), "Cat");
 
-                    return;
+                Console.WriteLine($"\nSelect owner to {animal.Name}: ");
+                var customers = _customerService.GetAll();
+                foreach(var customer in customers)
+                {
+                    Console.WriteLine($"Id: {customer.Id}, Name: {customer.Name}");
                 }
+
+                Console.WriteLine("Enter input below: \n");
+                int animalOwnerId = Convert.ToInt32(Console.ReadLine());
+
+                if (!customers.Any(x => x.Id == animalOwnerId))
+                    return;
                 else
                 {
-                    animal.Owner = CustomerList.customers[AnimalOwner];
-                    AnimalList.animals.Add(animal);
+                    animal.Owner = _customerService.GetById(animalOwnerId);
+                    _animalService.Update(animal);
                     Console.WriteLine($"\n{animal.Name} saved with {animal.Owner.Name} as owner. \n\nPress any button to continue...");
                     Console.ReadLine();
                 }
@@ -122,11 +122,11 @@ namespace Kennel
                 Console.WriteLine("Choose animal to Check-In: \n");
                 for (int i = 0; i < AnimalList.animals.Count; i++)
                 {
-                    if(!AnimalList.animals[i].isCheckedIn)
+                    if (!AnimalList.animals[i].isCheckedIn)
                     {
                         Console.WriteLine($"{i}. {AnimalList.animals[i].Name}");
                     }
-                    
+
                 }
                 Console.WriteLine("\nEnter input: ");
                 try //förlåt.
@@ -143,8 +143,8 @@ namespace Kennel
                     Console.WriteLine("Invalid input... \nPress any button to go back");
                     Console.ReadLine();
                 }
-               
-                
+
+
             }
             if (menuOption == "6")
             {
@@ -171,7 +171,7 @@ namespace Kennel
                     Console.WriteLine("Invalid input... \nPress any button to go back");
                     Console.ReadLine();
                 }
-                
+
             }
             if (menuOption == "7")
             {
@@ -194,7 +194,7 @@ namespace Kennel
                 Console.WriteLine("2. Pedicure\n");
                 Console.WriteLine("Enter input:");
                 string extraServiceOption = Console.ReadLine();
-                if(extraServiceOption == "1")
+                if (extraServiceOption == "1")
                 {
                     Console.WriteLine("Registered Animals: \n");
                     for (int i = 0; i < AnimalList.animals.Count; i++)
@@ -207,7 +207,7 @@ namespace Kennel
                     Console.WriteLine($"Wash applied to {AnimalList.animals[applyWash].Name}");
                     Console.WriteLine("Press any button continue...");
                     Console.ReadLine();
-                    
+
                 }
                 if (extraServiceOption == "2")
                 {
