@@ -2,8 +2,9 @@
 
 namespace Kennel
 {
-    public interface IAnimalList
+    public interface IListDatabase
     {
         List<IAnimal> animals { get; set; }
+        List<IPerson> customers { get; set; }
     }
 }

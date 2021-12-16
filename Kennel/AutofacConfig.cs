@@ -12,18 +12,16 @@ namespace Kennel
             //builds container
             var builder = new ContainerBuilder();
             
-            //Main
             builder.RegisterType<Application>().As<IApplication>();
 
-            //Classes
             builder.RegisterType<Factory>().As<IFactory>();
             builder.RegisterType<Animal>().As<IAnimal>();
             builder.RegisterType<Person>().As<IPerson>();
-            builder.RegisterType<CreatePerson>().As<ICreatePerson>();
+            builder.RegisterType<PersonManager>().As<IPersonManager>();
+            builder.RegisterType<AnimalManager>().As<IAnimalManager>();
             builder.RegisterType<MainMenu>().As<IMainMenu>();
-            builder.RegisterType<CustomerList>().As<ICustomerList>().SingleInstance();
-            builder.RegisterType<AnimalList>().As<IAnimalList>().SingleInstance();
-
+            builder.RegisterType<DataRepository>().As<IDataRepository>();
+            builder.RegisterType<ListDatabase>().As<IListDatabase>().SingleInstance();
 
             return builder.Build();
         }

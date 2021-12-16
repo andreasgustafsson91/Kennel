@@ -4,5 +4,6 @@
     {
         string Name { get; set; }
         IPerson Owner { get; set; }
+        string TypeOfAnimal { get; set; }
     }
 }
